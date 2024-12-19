@@ -6,7 +6,7 @@ class UserInfoView: UIView {
     private let avatarImageView = UIImageView()
     private let userNameLabel = UILabel()
     private let kokoIDButton = UIButton()
-    private let kokoIDBadgeView = UIView() // 粉红色圆点
+    private let kokoIDBadgeView = UIView()
     
     var userName: String? {
         didSet { userNameLabel.text = userName }
@@ -31,7 +31,7 @@ class UserInfoView: UIView {
     override init(frame: CGRect) {
         super.init(frame: frame)
         setupUI()
-        updateKokoID() // 确保初始化时更新状态
+        updateKokoID()
     }
     
     required init?(coder: NSCoder) {
@@ -96,7 +96,6 @@ class UserInfoView: UIView {
     }
     
     @objc private func kokoIDButtonTapped() {
-        print("設定 KOKO ID 按钮被点击")
-        // 可以在这里添加其他逻辑，例如打开设置页面等
+        print("設定 KOKO ID 觸發")
     }
 }
