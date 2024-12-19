@@ -69,22 +69,22 @@ class FriendViewController: UIViewController {
         }
 
         spacerView.backgroundColor = .clear
-         view.addSubview(spacerView)
-         spacerView.snp.makeConstraints { make in
-             make.top.equalTo(userInfoView.snp.bottom)
-             make.leading.trailing.equalToSuperview()
-             make.height.equalTo(14)
-         }
+        view.addSubview(spacerView)
+        spacerView.snp.makeConstraints { make in
+            make.top.equalTo(userInfoView.snp.bottom)
+            make.leading.trailing.equalToSuperview()
+            make.height.equalTo(14)
+        }
 
         scrollView.refreshControl = refreshControl
-        refreshControl.addTarget(self, action: #selector(handleRefresh), for: .valueChanged)
+        refreshControl.addTarget(
+            self, action: #selector(handleRefresh), for: .valueChanged)
 
-        
-         view.addSubview(scrollView)
-         scrollView.snp.makeConstraints { make in
-             make.top.equalTo(spacerView.snp.bottom)
-             make.leading.trailing.bottom.equalToSuperview()
-         }
+        view.addSubview(scrollView)
+        scrollView.snp.makeConstraints { make in
+            make.top.equalTo(spacerView.snp.bottom)
+            make.leading.trailing.bottom.equalToSuperview()
+        }
 
         scrollView.addSubview(contentView)
         contentView.snp.makeConstraints { make in
@@ -123,6 +123,7 @@ class FriendViewController: UIViewController {
         noFriendDefaultView.snp.makeConstraints { make in
             make.top.equalTo(separatorView.snp.bottom).offset(16)
             make.leading.trailing.equalToSuperview().inset(20)
+            make.bottom.equalToSuperview()
         }
 
         contentView.addSubview(friendListView)
@@ -150,7 +151,7 @@ class FriendViewController: UIViewController {
                 print("InviteList updated: \(inviteFriends)")
                 self?.inviteListView.inviteFriendsRelay.accept(inviteFriends)
                 self?.inviteListView.isHidden = inviteFriends.isEmpty
-                self?.spacerView.isHidden = inviteFriends.isEmpty 
+                self?.spacerView.isHidden = inviteFriends.isEmpty
             })
             .disposed(by: disposeBag)
 
@@ -177,13 +178,15 @@ class FriendViewController: UIViewController {
         .observe(on: MainScheduler.instance)
         .subscribe(onNext: { [weak self] inviteCount, unreadMessagesCount in
             guard let self = self else { return }
-            self.customSegmentControl.badgeValues = [inviteCount, unreadMessagesCount]
+            self.customSegmentControl.badgeValues = [
+                inviteCount, unreadMessagesCount,
+            ]
         })
         .disposed(by: disposeBag)
     }
-    
+
     @objc private func handleRefresh() {
-        viewModel.initializeLoad() 
+        viewModel.initializeLoad()
         DispatchQueue.main.asyncAfter(deadline: .now() + 1.0) { [weak self] in
             self?.refreshControl.endRefreshing()
         }
