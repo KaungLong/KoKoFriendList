@@ -2,11 +2,7 @@ import RxSwift
 import SnapKit
 import UIKit
 
-class FriendViewController: UIViewController {
-
-    private let viewModel = FriendViewModel()
-    private let disposeBag = DisposeBag()
-
+class FriendViewController: BaseViewController<FriendViewModel> {
     private let atmButton = UIButton()
     private let dollarButton = UIButton()
     private let scanButton = UIButton()
@@ -23,6 +19,9 @@ class FriendViewController: UIViewController {
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        viewModel = FriendViewModel()
+        observeErrors(from: viewModel)
+        
         view.backgroundColor = .white
         inviteListView.delegate = self
         setupUI()

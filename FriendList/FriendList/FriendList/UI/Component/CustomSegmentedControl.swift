@@ -1,5 +1,5 @@
-import UIKit
 import SnapKit
+import UIKit
 
 class CustomSegmentedControl: UIView {
 
@@ -77,9 +77,11 @@ class CustomSegmentedControl: UIView {
         button.setTitleColor(.gray, for: .normal)
         button.setTitleColor(.black, for: .selected)
         button.titleLabel?.font = UIFont.systemFont(ofSize: buttonFontSize)
-        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        button.contentEdgeInsets = UIEdgeInsets(
+            top: 0, left: 16, bottom: 0, right: 16)
         button.tag = tag
-        button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
+        button.addTarget(
+            self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
         return button
     }
 
@@ -92,6 +94,10 @@ class CustomSegmentedControl: UIView {
         badge.layer.cornerRadius = badgeRadius
         badge.layer.masksToBounds = true
         badge.isHidden = true
+
+        badge.snp.makeConstraints { make in
+            make.height.equalTo(badgeRadius * 2) 
+        }
         return badge
     }
 
@@ -111,6 +117,7 @@ class CustomSegmentedControl: UIView {
             make.leading.equalTo(buttons[index].snp.trailing).offset(-badgeInset)
             make.height.equalTo(badgeRadius * 2)
             make.width.greaterThanOrEqualTo(badgeRadius * 2)
+            make.width.greaterThanOrEqualTo(badge.intrinsicContentSize.width + 8)
         }
     }
 
@@ -118,10 +125,12 @@ class CustomSegmentedControl: UIView {
         guard index < buttons.count else { return }
 
         buttons[selectedIndex].isSelected = false
-        buttons[selectedIndex].titleLabel?.font = UIFont.systemFont(ofSize: buttonFontSize)
+        buttons[selectedIndex].titleLabel?.font = UIFont.systemFont(
+            ofSize: buttonFontSize)
 
         buttons[index].isSelected = true
-        buttons[index].titleLabel?.font = UIFont.boldSystemFont(ofSize: buttonFontSize)
+        buttons[index].titleLabel?.font = UIFont.boldSystemFont(
+            ofSize: buttonFontSize)
 
         selectedIndex = index
         updateIndicatorPosition(for: buttons[index])
@@ -134,7 +143,8 @@ class CustomSegmentedControl: UIView {
                 make.bottom.equalToSuperview()
                 make.height.equalTo(self.indicatorHeight)
                 make.centerX.equalTo(button.snp.centerX)
-                make.width.equalTo(button.titleLabel?.intrinsicContentSize.width ?? 0)
+                make.width.equalTo(
+                    button.titleLabel?.intrinsicContentSize.width ?? 0)
             }
             self.layoutIfNeeded()
         }

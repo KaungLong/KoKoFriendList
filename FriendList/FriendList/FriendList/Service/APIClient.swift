@@ -21,6 +21,7 @@ enum APIPath: String {
     case friendList2 = "friend2.json"
     case friendWithInvites = "friend3.json"
     case emptyFriendList = "friend4.json"
+    case errorAPI = "error"
     
     var path: String {
         return self.rawValue

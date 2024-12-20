@@ -17,6 +17,6 @@ struct FriendInfo: Decodable {
     let status: Int
     let isTop: String
     let fid: String
-    let updateDate: String
+    let updateDate: Date
     let avatar: String 
 }

@@ -8,6 +8,7 @@ class TestClient {
         case onlyFriends = "只有好友"
         case friendsWithInvites = "好友含邀請列表"
         case noKokoID = "沒有設定KoKoID"
+        case errorAPI = "錯誤API"
     }
     
     private init() {}
