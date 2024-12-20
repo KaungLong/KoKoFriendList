@@ -1,5 +1,4 @@
 import Foundation
-import UIKit
 
 struct User: Decodable {
     let name: String

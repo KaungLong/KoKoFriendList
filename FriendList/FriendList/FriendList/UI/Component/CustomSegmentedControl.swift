@@ -10,16 +10,20 @@ class CustomSegmentedControl: UIView {
     private var selectedIndex: Int = 0
 
     var buttonTitles: [String] = [] {
-        didSet {
-            setupButtons()
-        }
+        didSet { createButtons() }
     }
+
     var badgeValues: [Int] = [] {
-        didSet {
-            updateBadgeValues()
-        }
+        didSet { updateBadgeVisibility() }
     }
+
     var onSegmentSelected: ((Int) -> Void)?
+
+    private let buttonFontSize: CGFloat = 13
+    private let badgeFontSize: CGFloat = 10
+    private let indicatorHeight: CGFloat = 4
+    private let badgeRadius: CGFloat = 10
+    private let badgeInset: CGFloat = 10
 
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -35,117 +39,108 @@ class CustomSegmentedControl: UIView {
 
     private func setupStackView() {
         stackView.axis = .horizontal
-        stackView.distribution = .fillProportionally
-        stackView.alignment = .fill
+        stackView.distribution = .fillEqually
+        stackView.alignment = .center
         stackView.spacing = 16
         addSubview(stackView)
-        stackView.snp.makeConstraints { make in
-            make.edges.equalToSuperview()
-        }
-    }
-
-    private func setupButtons() {
-        buttons.forEach { $0.removeFromSuperview() }
-        badgeLabels.forEach { $0.removeFromSuperview() }
-        buttons.removeAll()
-        badgeLabels.removeAll()
-
-        for (index, title) in buttonTitles.enumerated() {
-            // Create Button
-            let button = UIButton()
-            button.setTitle(title, for: .normal)
-            button.setTitleColor(.gray, for: .normal)
-            button.setTitleColor(.black, for: .selected)
-            button.titleLabel?.font = UIFont.systemFont(ofSize: 13)
-            button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
-            button.tag = index
-            button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
-            buttons.append(button)
-            stackView.addArrangedSubview(button)
-
-            let badgeLabel = UILabel()
-            badgeLabel.textColor = .white
-            badgeLabel.font = UIFont.systemFont(ofSize: 10)
-            badgeLabel.textAlignment = .center
-            badgeLabel.backgroundColor = .systemPink
-            badgeLabel.layer.cornerRadius = 10
-            badgeLabel.layer.masksToBounds = true
-            badgeLabel.isHidden = true
-            
-            addSubview(badgeLabel)
-            badgeLabels.append(badgeLabel)
-
-            badgeLabel.snp.makeConstraints { make in
-                make.top.equalTo(button.snp.top).offset(-5)
-                make.leading.equalTo(button.snp.trailing).offset(-10)
-                make.height.equalTo(20)
-                make.width.greaterThanOrEqualTo(20) 
-            }
-        }
-
-        buttons.first?.isSelected = true
-        buttons.first?.titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
-        layoutIndicatorView()
+        stackView.snp.makeConstraints { $0.edges.equalToSuperview() }
     }
 
     private func setupIndicatorView() {
         indicatorView.backgroundColor = .systemPink
-        indicatorView.layer.cornerRadius = 2
-        indicatorView.layer.masksToBounds = true
+        indicatorView.layer.cornerRadius = indicatorHeight / 2
         addSubview(indicatorView)
     }
 
-    private func layoutIndicatorView() {
-        guard let firstButton = buttons.first else { return }
-        indicatorView.snp.remakeConstraints { make in
-            make.bottom.equalToSuperview()
-            make.height.equalTo(4)
-            make.centerX.equalTo(firstButton.snp.centerX)
-            make.width.equalTo(firstButton.titleLabel?.intrinsicContentSize.width ?? 0)
+    private func createButtons() {
+        stackView.arrangedSubviews.forEach { $0.removeFromSuperview() }
+        buttons.removeAll()
+        badgeLabels.forEach { $0.removeFromSuperview() }
+        badgeLabels.removeAll()
+
+        buttonTitles.enumerated().forEach { index, title in
+            let button = createButton(with: title, tag: index)
+            buttons.append(button)
+            stackView.addArrangedSubview(button)
+
+            let badge = createBadge()
+            badgeLabels.append(badge)
+            addSubview(badge)
+        }
+
+        updateSelection(to: 0)
+    }
+
+    private func createButton(with title: String, tag: Int) -> UIButton {
+        let button = UIButton()
+        button.setTitle(title, for: .normal)
+        button.setTitleColor(.gray, for: .normal)
+        button.setTitleColor(.black, for: .selected)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: buttonFontSize)
+        button.contentEdgeInsets = UIEdgeInsets(top: 0, left: 16, bottom: 0, right: 16)
+        button.tag = tag
+        button.addTarget(self, action: #selector(buttonTapped(_:)), for: .touchUpInside)
+        return button
+    }
+
+    private func createBadge() -> UILabel {
+        let badge = UILabel()
+        badge.textColor = .white
+        badge.font = UIFont.systemFont(ofSize: badgeFontSize)
+        badge.textAlignment = .center
+        badge.backgroundColor = .systemPink
+        badge.layer.cornerRadius = badgeRadius
+        badge.layer.masksToBounds = true
+        badge.isHidden = true
+        return badge
+    }
+
+    private func updateBadgeVisibility() {
+        for (index, value) in badgeValues.enumerated() {
+            guard index < badgeLabels.count else { continue }
+            let badge = badgeLabels[index]
+            badge.isHidden = value <= 0
+            badge.text = value > 99 ? "99+" : "\(value)"
+            updateBadgeConstraints(badge: badge, index: index)
         }
     }
 
-    private func updateBadgeValues() {
-        for (index, badgeValue) in badgeValues.enumerated() {
-            guard index < badgeLabels.count else { continue }
-            let badgeLabel = badgeLabels[index]
-            if badgeValue > 0 {
-                badgeLabel.text = badgeValue > 99 ? "99+" : "\(badgeValue)"
-                badgeLabel.isHidden = false
-                badgeLabel.snp.remakeConstraints { make in
-                    make.top.equalTo(buttons[index].snp.top).offset(-5)
-                    make.leading.equalTo(buttons[index].snp.trailing).offset(-10)
-                    make.height.equalTo(20) 
-                    make.width.equalTo(max(20, badgeLabel.intrinsicContentSize.width + 10))
-                }
-            } else {
-                badgeLabel.isHidden = true
+    private func updateBadgeConstraints(badge: UILabel, index: Int) {
+        badge.snp.remakeConstraints { make in
+            make.top.equalTo(buttons[index].snp.top).offset(-5)
+            make.leading.equalTo(buttons[index].snp.trailing).offset(-badgeInset)
+            make.height.equalTo(badgeRadius * 2)
+            make.width.greaterThanOrEqualTo(badgeRadius * 2)
+        }
+    }
+
+    private func updateSelection(to index: Int) {
+        guard index < buttons.count else { return }
+
+        buttons[selectedIndex].isSelected = false
+        buttons[selectedIndex].titleLabel?.font = UIFont.systemFont(ofSize: buttonFontSize)
+
+        buttons[index].isSelected = true
+        buttons[index].titleLabel?.font = UIFont.boldSystemFont(ofSize: buttonFontSize)
+
+        selectedIndex = index
+        updateIndicatorPosition(for: buttons[index])
+        onSegmentSelected?(index)
+    }
+
+    private func updateIndicatorPosition(for button: UIButton) {
+        UIView.animate(withDuration: 0.3) {
+            self.indicatorView.snp.remakeConstraints { make in
+                make.bottom.equalToSuperview()
+                make.height.equalTo(self.indicatorHeight)
+                make.centerX.equalTo(button.snp.centerX)
+                make.width.equalTo(button.titleLabel?.intrinsicContentSize.width ?? 0)
             }
+            self.layoutIfNeeded()
         }
     }
 
     @objc private func buttonTapped(_ sender: UIButton) {
         updateSelection(to: sender.tag)
-        onSegmentSelected?(sender.tag)
-    }
-
-    private func updateSelection(to index: Int) {
-        buttons[selectedIndex].isSelected = false
-        buttons[selectedIndex].titleLabel?.font = UIFont.systemFont(ofSize: 13)
-
-        buttons[index].isSelected = true
-        buttons[index].titleLabel?.font = UIFont.boldSystemFont(ofSize: 13)
-
-        selectedIndex = index
-
-        UIView.animate(withDuration: 0.3) {
-            self.indicatorView.snp.remakeConstraints { make in
-                make.bottom.equalToSuperview()
-                make.height.equalTo(4)
-                make.centerX.equalTo(self.buttons[index].snp.centerX)
-                make.width.equalTo(self.buttons[index].titleLabel?.intrinsicContentSize.width ?? 0)
-            }
-            self.layoutIfNeeded()
-        }
     }
 }
