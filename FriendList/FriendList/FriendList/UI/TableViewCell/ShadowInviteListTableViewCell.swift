@@ -48,15 +48,13 @@ class ShadowInviteListTableViewCell: UITableViewCell {
     
     private func setupLayout() {
         shadowContainerView.snp.makeConstraints { make in
-            make.top.equalToSuperview().offset(8)
-            make.leading.trailing.equalToSuperview().inset(20)
-            make.height.equalTo(70)
+            make.top.leading.trailing.equalToSuperview().inset(16)
+            make.bottom.equalToSuperview()
         }
         
         containerView.snp.makeConstraints { make in
-            make.top.equalToSuperview()
-            make.leading.trailing.equalToSuperview().inset(8)
-            make.bottom.equalTo(shadowContainerView.snp.bottom).offset(-10)
+            make.edges.equalToSuperview().inset(8)
+            make.height.equalTo(70)
         }
         
         containerView.addSubview(avatarImageView)

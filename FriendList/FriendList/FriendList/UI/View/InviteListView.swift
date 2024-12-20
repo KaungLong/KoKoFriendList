@@ -26,39 +26,48 @@ class InviteListView: UIView {
     }
 
     private func setupUI() {
-        addSubview(tableView)
+        setupTableView()
+    }
 
+    private func setupTableView() {
+        addSubview(tableView)
         tableView.snp.makeConstraints { make in
             make.top.leading.trailing.equalToSuperview()
             tableViewHeightConstraint = make.height.equalTo(100).constraint
             make.bottom.equalToSuperview()
         }
 
-        tableView.register(
-            ShadowInviteListTableViewCell.self,
-            forCellReuseIdentifier: ShadowInviteListTableViewCell.identifier
-        )
-        tableView.register(
-            InviteListTableViewCell.self,
-            forCellReuseIdentifier: InviteListTableViewCell.identifier
-        )
+        tableView.register(ShadowInviteListTableViewCell.self,
+                           forCellReuseIdentifier: ShadowInviteListTableViewCell.identifier)
+        tableView.register(InviteListTableViewCell.self,
+                           forCellReuseIdentifier: InviteListTableViewCell.identifier)
 
         tableView.estimatedRowHeight = 100
         tableView.rowHeight = UITableView.automaticDimension
         tableView.isScrollEnabled = false
         tableView.separatorStyle = .none
 
+        bindTableViewSelection()
+    }
+
+    private func bindTableViewSelection() {
         tableView.rx.itemSelected
             .subscribe(onNext: { [weak self] indexPath in
-                self?.tableView.deselectRow(at: indexPath, animated: false)
-                if !self!.isExpanded && indexPath.row == 0 {
-                    self?.expandInviteList()
+                guard let self = self else { return }
+                self.tableView.deselectRow(at: indexPath, animated: false)
+                if !self.isExpanded && indexPath.row == 0 {
+                    self.expandInviteList()
                 }
             })
             .disposed(by: disposeBag)
     }
 
     private func bindData() {
+        bindInviteFriendsRelayToTableView()
+        observeInviteFriendsRelayForHeightUpdate()
+    }
+
+    private func bindInviteFriendsRelayToTableView() {
         inviteFriendsRelay
             .observe(on: MainScheduler.instance)
             .map { [weak self] friends -> [FriendInfo] in
@@ -66,25 +75,12 @@ class InviteListView: UIView {
                 return self.isExpanded ? friends : Array(friends.prefix(1))
             }
             .bind(to: tableView.rx.items) { [weak self] tableView, index, friend in
-                guard let self = self else { return UITableViewCell() }
-                if index == 0 && !self.isExpanded {
-                    let cell = tableView.dequeueReusableCell(
-                        withIdentifier: ShadowInviteListTableViewCell.identifier,
-                        for: IndexPath(row: 0, section: 0)
-                    ) as! ShadowInviteListTableViewCell
-                    cell.configure(with: friend)
-                    return cell
-                } else {
-                    let cell = tableView.dequeueReusableCell(
-                        withIdentifier: InviteListTableViewCell.identifier,
-                        for: IndexPath(row: index, section: 0)
-                    ) as! InviteListTableViewCell
-                    cell.configure(with: friend)
-                    return cell
-                }
+                self?.configureCell(for: tableView, at: index, with: friend) ?? UITableViewCell()
             }
             .disposed(by: disposeBag)
+    }
 
+    private func observeInviteFriendsRelayForHeightUpdate() {
         inviteFriendsRelay
             .observe(on: MainScheduler.instance)
             .subscribe(onNext: { [weak self] _ in
@@ -93,11 +89,28 @@ class InviteListView: UIView {
             .disposed(by: disposeBag)
     }
 
+    private func configureCell(for tableView: UITableView, at index: Int, with friend: FriendInfo) -> UITableViewCell {
+        if index == 0 && !isExpanded {
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: ShadowInviteListTableViewCell.identifier,
+                for: IndexPath(row: 0, section: 0)
+            ) as! ShadowInviteListTableViewCell
+            cell.configure(with: friend)
+            return cell
+        } else {
+            let cell = tableView.dequeueReusableCell(
+                withIdentifier: InviteListTableViewCell.identifier,
+                for: IndexPath(row: index, section: 0)
+            ) as! InviteListTableViewCell
+            cell.configure(with: friend)
+            return cell
+        }
+    }
+
     private func expandInviteList() {
         isExpanded = true
         inviteFriendsRelay.accept(inviteFriendsRelay.value)
-        updateTableViewHeight() 
-        print("inviteFriendsRelay.value.count: \(inviteFriendsRelay.value.count)")
+        updateTableViewHeight()
     }
 
     private func updateTableViewHeight() {
