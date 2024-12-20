@@ -13,47 +13,70 @@ class InviteListTableViewCell: UITableViewCell {
     
     override init(style: UITableViewCell.CellStyle, reuseIdentifier: String?) {
         super.init(style: style, reuseIdentifier: reuseIdentifier)
-        selectionStyle = .none 
-        setupUI()
-        setupShadowAndRoundedCorners()
+        setupCell()
     }
     
     required init?(coder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+        super.init(coder: coder)
+        setupCell()
     }
     
-    private func setupUI() {
-        contentView.backgroundColor = .clear
-        
+    private func setupCell() {
+        selectionStyle = .none
+        setupContainerView()
+        setupAvatarImageView()
+        setupNameLabel()
+        setupMessageLabel()
+        setupAcceptButton()
+        setupDeclineButton()
+        setupLayout()
+    }
+    
+    private func setupContainerView() {
         containerView.backgroundColor = .white
         containerView.layer.cornerRadius = 12
-        containerView.clipsToBounds = true
-        
+        containerView.layer.shadowColor = UIColor.black.cgColor
+        containerView.layer.shadowOpacity = 0.1
+        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
+        containerView.layer.shadowRadius = 4
+        containerView.layer.masksToBounds = false
+        contentView.addSubview(containerView)
+    }
+    
+    private func setupAvatarImageView() {
         avatarImageView.layer.cornerRadius = 20
         avatarImageView.clipsToBounds = true
         avatarImageView.contentMode = .scaleAspectFill
-        
+        containerView.addSubview(avatarImageView)
+    }
+    
+    private func setupNameLabel() {
         nameLabel.font = .boldSystemFont(ofSize: 16)
         nameLabel.textColor = .black
-        
+        containerView.addSubview(nameLabel)
+    }
+    
+    private func setupMessageLabel() {
         messageLabel.font = .systemFont(ofSize: 14)
         messageLabel.textColor = .gray
-        
+        containerView.addSubview(messageLabel)
+    }
+    
+    private func setupAcceptButton() {
         acceptButton.setImage(UIImage(named: "btnFriendsAgree"), for: .normal)
         acceptButton.contentMode = .scaleAspectFit
         acceptButton.imageEdgeInsets = .zero
-        
+        containerView.addSubview(acceptButton)
+    }
+    
+    private func setupDeclineButton() {
         declineButton.setImage(UIImage(named: "btnFriendsDelet"), for: .normal)
         declineButton.contentMode = .scaleAspectFit
         declineButton.imageEdgeInsets = .zero
-        
-        contentView.addSubview(containerView)
-        containerView.addSubview(avatarImageView)
-        containerView.addSubview(nameLabel)
-        containerView.addSubview(messageLabel)
-        containerView.addSubview(acceptButton)
         containerView.addSubview(declineButton)
-        
+    }
+    
+    private func setupLayout() {
         containerView.snp.makeConstraints { make in
             make.edges.equalToSuperview().inset(8)
             make.height.equalTo(70)
@@ -88,14 +111,6 @@ class InviteListTableViewCell: UITableViewCell {
             make.trailing.equalTo(declineButton.snp.leading).offset(-16)
             make.width.height.equalTo(30)
         }
-    }
-    
-    private func setupShadowAndRoundedCorners() {
-        containerView.layer.shadowColor = UIColor.black.cgColor
-        containerView.layer.shadowOpacity = 0.1
-        containerView.layer.shadowOffset = CGSize(width: 0, height: 2)
-        containerView.layer.shadowRadius = 4
-        containerView.layer.masksToBounds = false
     }
     
     func configure(with friend: FriendInfo) {
